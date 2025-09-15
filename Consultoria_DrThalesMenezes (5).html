@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consultoria Dr Thales Menezes — Substituidor Nutricional</title>
+<style>
+  :root{--radius:14px}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;margin:24px;line-height:1.45;background:#fafafa}
+  header{display:flex;align-items:center;gap:16px;background:#111827;color:#fff;padding:16px;border-radius:12px;margin-bottom:20px}
+  header .title{font-size:1.25rem;font-weight:700;letter-spacing:.2px}
+  .muted{color:#5f6368}
+  .card{border:1px solid #e5e7eb;border-radius:var(--radius);padding:16px;margin:12px 0;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  label{display:block;margin:10px 0 6px;font-weight:600}
+  input,select,button{padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px}
+  input[type="number"]{max-width:220px}
+  table{border-collapse:collapse;width:100%;margin-top:10px}
+  th,td{border-bottom:1px solid #f1f5f9;padding:8px;text-align:left}
+  th{font-size:.9rem;background:#f9fafb}
+  .pill{font-size:.75rem;border:1px solid #e5e7eb;border-radius:999px;padding:2px 8px;background:#f8fafc;margin-right:6px}
+  .warn{background:#fff7ed;border-color:#fdba74}
+  .error{background:#fef2f2;border-color:#fecaca}
+  .ok{background:#f0fdf4;border-color:#bbf7d0}
+  .row{display:flex;gap:14px;flex-wrap:wrap;align-items:end}
+  .row > div{flex:1 1 240px}
+  .btn{cursor:pointer}
+  .btn-primary{background:#111827;color:#fff;border-color:#111827}
+  .btn-ghost{background:#fff}
+  .badge{background:#f3f4f6;color:#111827;border-radius:6px;padding:2px 6px;font-size:.75rem;margin-left:8px}
+  .filter{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px}
+  .chip{border:1px solid #e5e7eb;border-radius:999px;padding:4px 10px;font-size:.8rem;cursor:pointer;background:#fff}
+  .chip.active{background:#111827;color:#fff;border-color:#111827}
+  .footer{margin-top:24px;font-size:.85rem;color:#6b7280;text-align:center}
+</style>
+</head>
+<body>
+  <header>
+    <div class="title">Dr Thales Menezes Consultoria Esportiva</div>
+  </header>
+
+  <div class="card">
+    <h2 style="margin:0 0 6px">Substituidor Nutricional <span class="badge">Versão segura</span></h2>
+    <p class="muted small">
+      Escolha um alimento e informe a gramagem. Selecione o alvo (<strong>Carbo</strong>, <strong>Proteína</strong>, <strong>Gordura</strong> ou <strong>kcal</strong>).
+      A tabela lista quantos gramas dos demais itens equivalem ao mesmo alvo. Base <strong>editável</strong> abaixo.
+    </p>
+    <div class="row">
+      <div>
+        <label for="foodSelect">Alimento escolhido</label>
+        <select id="foodSelect"></select>
+      </div>
+      <div>
+        <label for="gramsInput">Gramagem do alimento (g / mL)</label>
+        <input id="gramsInput" type="number" min="0" step="1" value="150" inputmode="numeric">
+      </div>
+      <div>
+        <label for="targetSelect">Alvo</label>
+        <select id="targetSelect">
+          <option value="carb" selected>Carboidratos</option>
+          <option value="prot">Proteínas</option>
+          <option value="fat">Gorduras</option>
+          <option value="kcal">kcal</option>
+        </select>
+      </div>
+      <div>
+        <label for="rounding">Arredondar</label>
+        <select id="rounding">
+          <option value="1">Sem arredondar</option>
+          <option value="5" selected>Para 5 g</option>
+          <option value="10">Para 10 g</option>
+        </select>
+      </div>
+      <div>
+        <button class="btn btn-primary" id="btnCalc">Calcular</button>
+        <button class="btn btn-ghost" id="btnPrint" title="Imprimir / Salvar em PDF">Imprimir</button>
+      </div>
+    </div>
+
+    <div class="filter">
+      <span class="muted small">Filtro:</span>
+      <span class="chip active" data-cat="all">Todos</span>
+      <span class="chip" data-cat="cereal">Cereais</span><span class="chip" data-cat="tubérculo">Tubérculos</span><span class="chip" data-cat="pão">Pães</span>
+      <span class="chip" data-cat="massa">Massas</span><span class="chip" data-cat="leguminosa">Leguminosas</span><span class="chip" data-cat="fruta">Frutas</span>
+      <span class="chip" data-cat="proteína">Proteínas</span><span class="chip" data-cat="gordura">Gorduras</span><span class="chip" data-cat="laticínio">Laticínios</span>
+      <span class="chip" data-cat="snack">Snacks</span><span class="chip" data-cat="amido">Amidos/Farinhas</span><span class="chip" data-cat="hortaliça">Hortaliças</span>
+      <span class="chip" data-cat="combo">Combos</span><span class="chip" data-cat="bebida">Bebidas</span>
+    </div>
+
+    <div style="margin-top:10px">
+      <span class="pill" id="macroInfo"></span>
+      <span class="pill" id="kcalInfo"></span>
+      <span class="pill" id="safetyInfo"></span>
+    </div>
+    <div class="muted" style="margin-top:6px;font-size:.85rem">
+      <strong>Regras do protocolo:</strong> Proteínas por porção ≈ 25–30 g P e 5–7 g G. Itens mais gordos (ovo, sobrecoxa, salmão): considerar
+      <em>não adicionar</em> 1 equivalente de gordura. Frutas: ≈ 12–15 g de carbo por porção.
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 6px">Substituições equivalentes</h3>
+    <table id="resultsTable">
+      <thead>
+        <tr>
+          <th>Alimento</th><th>Categoria</th><th>Porção padrão (g/mL)</th>
+          <th>Carbo/porção (g)</th><th>Prot/porção (g)</th><th>Gord/porção (g)</th><th>kcal/porção</th>
+          <th>Carbo/g</th><th>Prot/g</th><th>Gord/g</th><th>kcal/g</th><th>Gramas p/ equivaler</th><th>Notas</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 6px">Base de dados (editável)</h3>
+    <p class="muted small" style="margin-top:0">Ajuste porção e macros por porção conforme rótulo/TACO do paciente. A tabela acima recalcula automaticamente.</p>
+    <table id="baseTable">
+      <thead>
+        <tr>
+          <th>Alimento</th><th>Categoria</th><th>Porção padrão (g/mL)</th>
+          <th>Carbo/porção (g)</th><th>Prot/porção (g)</th><th>Gord/porção (g)</th><th>Notas</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    Desenvolvido para <strong>Dr Thales Menezes Consultoria Esportiva</strong> — © 2025
+  </div>
+
+<script>
+function kcal(c,p,f){ return 4*c + 4*p + 9*f; }
+function clamp(n, min, max){ return Math.min(Math.max(n, min), max); }
+function fmt(n, d=2){ return (Math.round(n*10**d)/10**d).toFixed(d).replace('.',','); }
+function toNum(x, fb=0){ const n = Number(x); return Number.isFinite(n) ? n : fb; }
+function perGram(v, por){ return (por>0 ? v/por : 0); }
+
+// ===================== BASE INTEGRADA (do seu protocolo) =====================
+// nome, categoria, porcao, carb_p, prot_p, gord_p, notas
+const BASE_INIT = [
+  // ---- Carbo de referência (para trocas) ----
+  ["Arroz cozido (branco/integral)","cereal",110,25,2.2,0.3,"Peso cozido"],
+  ["Mandioca (cozida)","tubérculo",100,25,0.5,0.1,"Peso cozido"],
+  ["Batata doce (cozida)","tubérculo",150,25,2,0.1,"Peso cozido"],
+  ["Pão francês / forma","pão",50,25,5,2,"≈ 1 un francês / 2 fatias forma"],
+  ["Macarrão (cozido)","massa",100,25,5,1.1,"Peso cozido"],
+  ["Feijão / leguminosa (cozido)","leguminosa",170,25,9,1,"Peso cozido (média)"],
+
+  // ---- PROTEÍNAS (≈25–30 g P e 5–7 g G por porção) ----
+  ["Filé de frango (grelhado/cozido/moído)","proteína",100,0,27,6,"Equivalência do protocolo; peso cozido"],
+  ["Sobrecoxa de frango (sem osso/pele)","proteína",100,0,27,7,"Mais gordura; considerar não somar gordura extra"],
+  ["Patinho/Contra filé/Acém/Alcatra/Coxão mole/Lagarto/Filé mignon (bovino)","proteína",100,0,27,6,"Cortes limpos; peso cozido"],
+  ["Filé mignon suíno / Pernil / Lombo suíno","proteína",100,0,27,6,"Peso cozido"],
+  ["Peixes e frutos do mar (tilápia, merluza, atum, sardinha, salmão, camarão)","proteína",120,0,27,6,"Peso cozido; salmão mais gordo"],
+  ["Ovos (2) + 4 claras","proteína",220,0.4,27,6,"≈ 2 ovos (~100 g) + 4 claras (~120 g)"],
+  ["Ovos (2) + 40 g de carne","proteína",140,0.4,27,6,"≈ 2 ovos (~100 g) + 40 g carne"],
+  ["Claras (8 un / 240 mL)","proteína",260,1,27,0.5,"Baixa gordura; ajuste se pasteurizada"],
+  ["PTS (Proteína texturizada de soja)","proteína",100,5,27,3,"Ajuste conforme rótulo"],
+
+  // ---- GORDURAS (≈5–7 g; usamos 6 g por porção) ----
+  ["Abacate","gordura",88,3,1,6,"Porção média 75–100 g"],
+  ["Azeitona","gordura",50,1,0.5,6,""],
+  ["Azeite de oliva","gordura",7,0,0,7,"1 c.sopa rasa ≈ 7 g"],
+  ["Calabresa/Bacon","gordura",13,0,3,6,"10–15 g; usar 13 g"],
+  ["Creme de leite","gordura",13,1,0.5,6,"10–15 g; usar 13 g"],
+  ["Chocolate ≥60% cacau","gordura",13,6,1,6,"10–15 g; usar 13 g"],
+  ["Coco seco/desidratado","gordura",13,2,1,6,"10–15 g; usar 13 g"],
+  ["Óleo de coco","gordura",7,0,0,7,"1 c.sopa rasa ≈ 7 g"],
+  ["Manteiga","gordura",7,0,0,7,"1 c.sopa rasa ≈ 7 g"],
+  ["Oleaginosas e sementes (amendoim/pasta, nozes, castanhas, chia, linhaça, gergelim, macadâmia, abóbora, girassol, cânhamo)","gordura",13,2,3,6,"10–15 g; usar 13 g"],
+  ["Queijos duros (muçarela, parmesão, gorgonzola, qualho, provolone)","gordura",13,0.5,3,6,"10–15 g; usar 13 g"],
+  ["Queijos frescos (Minas, cottage, ricota, creme de ricota)","gordura",28,1,3,6,"25–30 g; usar 28 g"],
+  ["Requeijão","gordura",15,1,1,6,""],
+  ["Requeijão light","gordura",20,1,2,6,""],
+
+  // ---- FRUTAS (≈ 12–15 g C por porção; usamos 13,5 g) ----
+  ["Açaí (Frooty zero)","fruta",85,13.5,1,0.5,"80–90 g"],
+  ["Abacaxi","fruta",110,13.5,0.5,0.1,"100–120 g"],
+  ["Ameixa/Nectarina","fruta",95,13.5,0.8,0.2,"90–100 g"],
+  ["Amora","fruta",165,13.5,1.5,0.5,"150–180 g"],
+  ["Acerola","fruta",165,13.5,1.2,0.2,"150–180 g"],
+  ["Banana","fruta",55,13.5,1.3,0.3,"50–60 g"],
+  ["Caqui","fruta",65,13.5,0.4,0.1,"60–70 g"],
+  ["Carambola","fruta",110,13.5,1,0.3,"100–120 g"],
+  ["Figo","fruta",135,13.5,1.2,0.3,"120–150 g"],
+  ["Graviola","fruta",85,13.5,1,0.5,"80–90 g"],
+  ["Jabuticaba","fruta",85,13.5,0.9,0.2,"80–90 g"],
+  ["Pinha/Atemóia","fruta",65,13.5,0.9,0.3,"60–70 g"],
+  ["Goiaba","fruta",100,13.5,1.4,0.5,""],
+  ["Kiwi","fruta",110,13.5,1.1,0.5,"100–120 g"],
+  ["Laranja","fruta",110,13.5,1,0.3,"100–120 g"],
+  ["Maçã","fruta",80,13.5,0.3,0.2,""],
+  ["Mamão","fruta",120,13.5,0.5,0.1,"110–130 g"],
+  ["Manga","fruta",70,13.5,0.5,0.2,""],
+  ["Melancia","fruta",170,13.5,0.6,0.2,"160–180 g"],
+  ["Melão","fruta",170,13.5,0.8,0.2,"160–180 g"],
+  ["Morango","fruta",190,13.5,1,0.3,"180–200 g"],
+  ["Romã","fruta",80,13.5,1,0.3,""],
+  ["Pêra","fruta",80,13.5,0.3,0.2,""],
+  ["Tangerina/Mexerica","fruta",110,13.5,0.6,0.2,"100–120 g"],
+  ["Uva","fruta",105,13.5,0.7,0.2,"100–110 g"],
+  ["Frutas secas (damasco, uva passa, ameixa, tâmara, etc.)","fruta",25,13.5,1,0.1,""],
+
+  // ---- BEBIDAS (equivalentes às frutas) ----
+  ["Suco de laranja natural (sem açúcar)","bebida",125,13.5,1,0,""],
+  ["Suco de uva integral","bebida",100,13.5,0.5,0,""],
+  ["Água de coco natural","bebida",250,13.5,0,0,""],
+  ["1 porção de fruta batida com água","bebida",200,13.5,0.5,0,"Porção ilustrativa"],
+  ["1 polpa de fruta batida com água","bebida",100,13.5,0.5,0,"Porção ilustrativa"],
+
+  // ---- ZERO kcal ----
+  ["Suco de limão (zero)","bebida",200,0,0,0,"0 kcal; adoçar c/ sucralose (FINN) opcional"],
+  ["Suco de maracujá (zero)","bebida",200,0,0,0,"0 kcal"],
+  ["Chás zero","bebida",200,0,0,0,"0 kcal; cautela com cafeína à noite"],
+  ["Refrigerante zero","bebida",350,0,0,0,"0 kcal; cautela com cafeína à noite"]
+];
+
+let base = BASE_INIT.map(r => ({nome:r[0],cat:r[1],porcao:r[2],carb_p:r[3],prot_p:r[4],gord_p:r[5],notas:r[6]||""}));
+
+const foodSelect = document.getElementById('foodSelect');
+const gramsInput = document.getElementById('gramsInput');
+const targetSelect = document.getElementById('targetSelect');
+const roundingSel = document.getElementById('rounding');
+const btnCalc = document.getElementById('btnCalc');
+const btnPrint = document.getElementById('btnPrint');
+const macroInfo = document.getElementById('macroInfo');
+const kcalInfo = document.getElementById('kcalInfo');
+const safetyInfo = document.getElementById('safetyInfo');
+const resultsBody = document.querySelector('#resultsTable tbody');
+const baseBody = document.querySelector('#baseTable tbody');
+const chips = Array.from(document.querySelectorAll('.chip'));
+let activeCat = "all";
+
+chips.forEach(ch => {
+  ch.addEventListener('click', () => {
+    chips.forEach(c => c.classList.remove('active'));
+    ch.classList.add('active');
+    activeCat = ch.dataset.cat;
+    compute();
+  });
+});
+
+function rebuildSelect(){
+  foodSelect.innerHTML = "";
+  base.forEach((it, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = it.nome;
+    foodSelect.appendChild(opt);
+  });
+}
+
+function rebuildBaseTable(){
+  baseBody.innerHTML = "";
+  base.forEach((it, idx) => {
+    const tr = document.createElement('tr');
+
+    // Nome
+    const tdN = document.createElement('td');
+    const inpN = document.createElement('input'); inpN.value = it.nome; inpN.style.width="100%";
+    inpN.addEventListener('change', () => { it.nome = inpN.value; rebuildSelect(); compute(); });
+    tdN.appendChild(inpN);
+
+    // Categoria
+    const tdC = document.createElement('td');
+    const inpC = document.createElement('input'); inpC.value = it.cat; inpC.style.width="120px";
+    inpC.addEventListener('change', () => { it.cat = inpC.value; compute(); });
+    tdC.appendChild(inpC);
+
+    // Porção
+    const tdP = document.createElement('td');
+    const inpP = document.createElement('input'); inpP.type="number"; inpP.step="1"; inpP.min="1"; inpP.value = it.porcao;
+    inpP.addEventListener('input', () => { it.porcao = clamp(toNum(inpP.value, it.porcao), 1, 5000); compute(); });
+    tdP.appendChild(inpP);
+
+    // Carbo p/porção
+    const tdCarb = document.createElement('td');
+    const inpCarb = document.createElement('input'); inpCarb.type="number"; inpCarb.step="0.1"; inpCarb.min="0"; inpCarb.value = it.carb_p;
+    inpCarb.addEventListener('input', () => { it.carb_p = clamp(toNum(inpCarb.value, it.carb_p), 0, 1000); compute(); });
+    tdCarb.appendChild(inpCarb);
+
+    // Prot p/porção
+    const tdProt = document.createElement('td');
+    const inpProt = document.createElement('input'); inpProt.type="number"; inpProt.step="0.1"; inpProt.min="0"; inpProt.value = it.prot_p;
+    inpProt.addEventListener('input', () => { it.prot_p = clamp(toNum(inpProt.value, it.prot_p), 0, 1000); compute(); });
+    tdProt.appendChild(inpProt);
+
+    // Gord p/porção
+    const tdGord = document.createElement('td');
+    const inpGord = document.createElement('input'); inpGord.type="number"; inpGord.step="0.1"; inpGord.min="0"; inpGord.value = it.gord_p;
+    inpGord.addEventListener('input', () => { it.gord_p = clamp(toNum(inpGord.value, it.gord_p), 0, 1000); compute(); });
+    tdGord.appendChild(inpGord);
+
+    // Notas
+    const tdNo = document.createElement('td');
+    const inpNo = document.createElement('input'); inpNo.value = it.notas||""; inpNo.style.width="100%";
+    inpNo.addEventListener('change', () => { it.notas = inpNo.value; });
+    tdNo.appendChild(inpNo);
+
+    tr.appendChild(tdN); tr.appendChild(tdC); tr.appendChild(tdP); tr.appendChild(tdCarb); tr.appendChild(tdProt);
+    tr.appendChild(tdGord); tr.appendChild(tdNo);
+    baseBody.appendChild(tr);
+  });
+}
+
+function safetyBadges(targetVal, grams){
+  let cls = "pill ok", msg = "Parâmetros dentro do esperado";
+  if (!Number.isFinite(targetVal) || targetVal <= 0){
+    cls = "pill error"; msg = "Alvo não calculado — verifique alimento/gramas";
+  } else if (grams > 1500){
+    cls = "pill warn"; msg = "Gramagem muito alta — confira se não digitou em mL/porções";
+  } else if (document.getElementById('targetSelect').value !== "kcal" && targetVal > 120){
+    cls = "pill warn"; msg = "Macronutriente muito alto p/ 1 refeição — reavalie a porção";
+  } else if (document.getElementById('targetSelect').value === "kcal" && targetVal > 1200){
+    cls = "pill warn"; msg = "kcal muito alto p/ 1 refeição — reavalie a porção";
+  }
+  safetyInfo.className = cls;
+  safetyInfo.textContent = msg;
+}
+
+function compute(){
+  const idx = Number(foodSelect.value || 0);
+  const grams = clamp(toNum(gramsInput.value, 0), 0, 5000);
+  const rounding = Number(roundingSel.value || 1);
+  const target = targetSelect.value;
+
+  const A = base[idx] || base[0];
+  const carb_g = perGram(A.carb_p, A.porcao);
+  const prot_g = perGram(A.prot_p, A.porcao);
+  const gord_g = perGram(A.gord_p, A.porcao);
+  const kcal_g = kcal(carb_g, prot_g, gord_g);
+
+  const totalCarb = grams * carb_g;
+  const totalProt = grams * prot_g;
+  const totalGord = grams * gord_g;
+  const totalKcal = grams * kcal_g;
+
+  document.getElementById('macroInfo').textContent = `${A.nome}: ${fmt(totalCarb)} g C | ${fmt(totalProt)} g P | ${fmt(totalGord)} g G`;
+  document.getElementById('kcalInfo').textContent  = `~ ${fmt(totalKcal)} kcal (porção informada)`;
+
+  let targetVal = totalCarb;
+  if(target==="prot") targetVal = totalProt;
+  else if(target==="fat") targetVal = totalGord;
+  else if(target==="kcal") targetVal = totalKcal;
+
+  safetyBadges(targetVal, grams);
+
+  resultsBody.innerHTML = "";
+  base.forEach((it, i) => {
+    if (activeCat !== "all" && it.cat !== activeCat) return;
+
+    const c_g = perGram(it.carb_p, it.porcao);
+    const p_g = perGram(it.prot_p, it.porcao);
+    const f_g = perGram(it.gord_p, it.porcao);
+    const k_g = kcal(c_g, p_g, f_g);
+
+    let gramsNeededRaw = 0;
+    if(target==="carb"){ gramsNeededRaw = c_g>0 ? (targetVal / c_g) : 0; }
+    else if(target==="prot"){ gramsNeededRaw = p_g>0 ? (targetVal / p_g) : 0; }
+    else if(target==="fat"){ gramsNeededRaw = f_g>0 ? (targetVal / f_g) : 0; }
+    else if(target==="kcal"){ gramsNeededRaw = k_g>0 ? (targetVal / k_g) : 0; }
+
+    const gramsNeeded = rounding>1 ? Math.round(gramsNeededRaw/rounding)*rounding : gramsNeededRaw;
+
+    const tr = document.createElement('tr');
+    if(i===idx) tr.style.background="#fafafa";
+
+    function td(x){ const d=document.createElement('td'); d.textContent=x; return d; }
+
+    tr.appendChild(td(it.nome));
+    tr.appendChild(td(it.cat));
+    tr.appendChild(td(fmt(it.porcao,0)));
+    tr.appendChild(td(fmt(it.carb_p)));
+    tr.appendChild(td(fmt(it.prot_p)));
+    tr.appendChild(td(fmt(it.gord_p)));
+    tr.appendChild(td(fmt(kcal(it.carb_p,it.prot_p,it.gord_p),0)));
+    tr.appendChild(td(fmt(c_g,3)));
+    tr.appendChild(td(fmt(p_g,3)));
+    tr.appendChild(td(fmt(f_g,3)));
+    tr.appendChild(td(fmt(k_g,2)));
+    tr.appendChild(td(i===idx ? fmt(grams,0)+" (mesmo alimento)" : fmt(gramsNeeded,0)));
+    tr.appendChild(td(it.notas||""));
+
+    tr.addEventListener('click', () => { foodSelect.value = i; compute(); });
+    resultsBody.appendChild(tr);
+  });
+}
+
+document.getElementById('btnCalc').addEventListener('click', compute);
+document.getElementById('btnPrint').addEventListener('click', () => window.print());
+
+function init(){
+  // Menu alimento
+  const foodSel = document.getElementById('foodSelect');
+  foodSel.innerHTML = "";
+  base.forEach((it, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx; opt.textContent = it.nome;
+    foodSel.appendChild(opt);
+  });
+  foodSel.value = "0";
+
+  // Base editável
+  rebuildBaseTable();
+  compute();
+}
+
+init();
+</script>
+</body>
+</html>
