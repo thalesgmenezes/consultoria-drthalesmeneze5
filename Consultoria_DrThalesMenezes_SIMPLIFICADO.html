@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consultoria Dr Thales Menezes — Substituidor (SIMPLIFICADO)</title>
+<style>
+  :root{--radius:14px}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;margin:20px;line-height:1.4;background:#fafafa}
+  header{display:flex;align-items:center;gap:12px;background:#111827;color:#fff;padding:14px;border-radius:12px;margin-bottom:14px}
+  header .title{font-size:1.05rem;font-weight:700}
+  .card{border:1px solid #e5e7eb;border-radius:var(--radius);padding:14px;margin:10px 0;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  label{display:block;margin:8px 0 6px;font-weight:600}
+  input,select,button{padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;font-size:1rem}
+  input[type="number"]{max-width:200px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+  .row > div{flex:1 1 220px}
+  .btn{cursor:pointer}
+  .btn-primary{background:#111827;color:#fff;border-color:#111827}
+  .btn-ghost{background:#fff}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .chip{border:1px solid #e5e7eb;border-radius:999px;padding:6px 12px;font-size:.9rem;cursor:pointer;background:#fff}
+  .chip.active{background:#111827;color:#fff;border-color:#111827}
+  .pill{display:inline-block;font-size:.85rem;border:1px solid #e5e7eb;border-radius:999px;padding:4px 10px;background:#f8fafc;margin:6px 6px 0 0}
+  table{border-collapse:collapse;width:100%;margin-top:8px}
+  th,td{border-bottom:1px solid #f1f5f9;padding:10px;text-align:left}
+  th{background:#f9fafb}
+  .small{font-size:.9rem;color:#64748b}
+  details summary{cursor:pointer;font-weight:600;margin-bottom:8px}
+</style>
+</head>
+<body>
+  <header>
+    <div class="title">Dr Thales Menezes Consultoria Esportiva — Modo SIMPLIFICADO</div>
+  </header>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <label for="foodSelect">Alimento base</label>
+        <select id="foodSelect"></select>
+      </div>
+      <div>
+        <label for="gramsInput">Gramagem do alimento (g / mL)</label>
+        <input id="gramsInput" type="number" min="0" step="1" value="150" inputmode="numeric">
+      </div>
+      <div>
+        <label for="rounding">Arredondar</label>
+        <select id="rounding">
+          <option value="1">Sem arredondar</option>
+          <option value="5" selected>Para 5 g</option>
+          <option value="10">Para 10 g</option>
+        </select>
+      </div>
+      <div>
+        <button class="btn btn-primary" id="btnCalc">Calcular</button>
+        <button class="btn btn-ghost" id="btnPrint" title="Imprimir / Salvar em PDF">Imprimir</button>
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip active" data-group="all">Todos</span>
+      <span class="chip" data-group="carbo">Carboidratos</span>
+      <span class="chip" data-group="proteina">Proteínas</span>
+      <span class="chip" data-group="fruta">Frutas</span>
+      <span class="chip" data-group="gordura">Gorduras</span>
+      <span class="chip" data-group="bebida">Bebidas</span>
+    </div>
+    <div id="info" class="small"></div>
+  </div>
+
+  <div class="card">
+    <strong>Equivalências por kcal</strong>
+    <table id="resultsTable">
+      <thead>
+        <tr>
+          <th>Alimento</th>
+          <th>Grupo</th>
+          <th>Gramas para equivaler (kcal)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>Editar base (profissional)</summary>
+      <p class="small">Edite porções e macros por porção conforme rótulo/TACO. O cálculo de equivalência usa apenas <b>kcal</b> (4/4/9).</p>
+      <table id="baseTable">
+        <thead>
+          <tr>
+            <th>Alimento</th><th>Categoria detalhada</th><th>Grupo (simples)</th><th>Porção padrão</th><th>Carbo/porção</th><th>Prot/porção</th><th>Gord/porção</th><th>Notas</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </details>
+  </div>
+
+<script>
+function kcal(c,p,f){ return 4*c + 4*p + 9*f; }
+function clamp(n, min, max){ return Math.min(Math.max(n, min), max); }
+function fmt(n, d=0){ return (Math.round(n*10**d)/10**d).toFixed(d).replace('.',','); }
+function toNum(x, fb=0){ const n = Number(x); return Number.isFinite(n) ? n : fb; }
+function perGram(v, por){ return (por>0 ? v/por : 0); }
+
+// ====== BASE (agrupada em 5 grupos simples) ======
+// nome, catDet, grupoSimples, porcao, carb_p, prot_p, gord_p, notas
+const BASE_INIT = [
+  ["Arroz cozido (branco/integral)","cereal","carbo",110,25,2.2,0.3,"Peso cozido"],
+  ["Mandioca (cozida)","tubérculo","carbo",100,25,0.5,0.1,"Peso cozido"],
+  ["Batata doce (cozida)","tubérculo","carbo",150,25,2,0.1,"Peso cozido"],
+  ["Pão francês / forma","pão","carbo",50,25,5,2,"≈ 1 un francês / 2 fatias forma"],
+  ["Macarrão (cozido)","massa","carbo",100,25,5,1.1,"Peso cozido"],
+  ["Feijão / leguminosa (cozido)","leguminosa","carbo",170,25,9,1,"Peso cozido (média)"],
+
+  ["Filé de frango (grelhado/cozido/moído)","proteína","proteina",100,0,27,6,"Equivalência; peso cozido"],
+  ["Sobrecoxa de frango (sem osso/pele)","proteína","proteina",100,0,27,7,"Mais gordura; considerar não somar gordura extra"],
+  ["Patinho/Contra filé/Acém/Alcatra/Coxão mole/Lagarto/Filé mignon (bovino)","proteína","proteina",100,0,27,6,"Cortes limpos; peso cozido"],
+  ["Filé mignon suíno / Pernil / Lombo suíno","proteína","proteina",100,0,27,6,"Peso cozido"],
+  ["Peixes e frutos do mar (tilápia, merluza, atum, sardinha, salmão, camarão)","proteína","proteina",120,0,27,6,"Peso cozido; salmão mais gordo"],
+  ["Ovos (2) + 4 claras","proteína","proteina",220,0.4,27,6,"≈ 2 ovos (~100 g) + 4 claras (~120 g)"],
+  ["Ovos (2) + 40 g de carne","proteína","proteina",140,0.4,27,6,"≈ 2 ovos (~100 g) + 40 g carne"],
+  ["Claras (8 un / 240 mL)","proteína","proteina",260,1,27,0.5,"Baixa gordura; ajuste se pasteurizada"],
+  ["PTS (Proteína texturizada de soja)","proteína","proteina",100,5,27,3,"Ajuste conforme rótulo"],
+
+  ["Abacate","gordura","gordura",88,3,1,6,"Porção média 75–100 g"],
+  ["Azeitona","gordura","gordura",50,1,0.5,6,""],
+  ["Azeite de oliva","gordura","gordura",7,0,0,7,"1 c.sopa rasa ≈ 7 g"],
+  ["Calabresa/Bacon","gordura","gordura",13,0,3,6,"10–15 g; usar 13 g"],
+  ["Creme de leite","gordura","gordura",13,1,0.5,6,"10–15 g; usar 13 g"],
+  ["Chocolate ≥60% cacau","gordura","gordura",13,6,1,6,"10–15 g; usar 13 g"],
+  ["Coco seco/desidratado","gordura","gordura",13,2,1,6,"10–15 g; usar 13 g"],
+  ["Óleo de coco","gordura","gordura",7,0,0,7,"1 c.sopa rasa ≈ 7 g"],
+  ["Manteiga","gordura","gordura",7,0,0,7,"1 c.sopa rasa ≈ 7 g"],
+  ["Oleaginosas e sementes (amendoim/pasta, nozes, castanhas, chia, linhaça, gergelim, macadâmia, abóbora, girassol, cânhamo)","gordura","gordura",13,2,3,6,"10–15 g; usar 13 g"],
+  ["Queijos duros (muçarela, parmesão, gorgonzola, qualho, provolone)","gordura","gordura",13,0.5,3,6,"10–15 g; usar 13 g"],
+  ["Queijos frescos (Minas, cottage, ricota, creme de ricota)","gordura","gordura",28,1,3,6,"25–30 g; usar 28 g"],
+  ["Requeijão","gordura","gordura",15,1,1,6,""],
+  ["Requeijão light","gordura","gordura",20,1,2,6,""],
+
+  ["Açaí (Frooty zero)","fruta","fruta",85,13.5,1,0.5,"80–90 g"],
+  ["Abacaxi","fruta","fruta",110,13.5,0.5,0.1,"100–120 g"],
+  ["Ameixa/Nectarina","fruta","fruta",95,13.5,0.8,0.2,"90–100 g"],
+  ["Amora","fruta","fruta",165,13.5,1.5,0.5,"150–180 g"],
+  ["Acerola","fruta","fruta",165,13.5,1.2,0.2,"150–180 g"],
+  ["Banana","fruta","fruta",55,13.5,1.3,0.3,"50–60 g"],
+  ["Caqui","fruta","fruta",65,13.5,0.4,0.1,"60–70 g"],
+  ["Carambola","fruta","fruta",110,13.5,1,0.3,"100–120 g"],
+  ["Figo","fruta","fruta",135,13.5,1.2,0.3,"120–150 g"],
+  ["Graviola","fruta","fruta",85,13.5,1,0.5,"80–90 g"],
+  ["Jabuticaba","fruta","fruta",85,13.5,0.9,0.2,"80–90 g"],
+  ["Pinha/Atemóia","fruta","fruta",65,13.5,0.9,0.3,"60–70 g"],
+  ["Goiaba","fruta","fruta",100,13.5,1.4,0.5,""],
+  ["Kiwi","fruta","fruta",110,13.5,1.1,0.5,"100–120 g"],
+  ["Laranja","fruta","fruta",110,13.5,1,0.3,"100–120 g"],
+  ["Maçã","fruta","fruta",80,13.5,0.3,0.2,""],
+  ["Mamão","fruta","fruta",120,13.5,0.5,0.1,"110–130 g"],
+  ["Manga","fruta","fruta",70,13.5,0.5,0.2,""],
+  ["Melancia","fruta","fruta",170,13.5,0.6,0.2,"160–180 g"],
+  ["Melão","fruta","fruta",170,13.5,0.8,0.2,"160–180 g"],
+  ["Morango","fruta","fruta",190,13.5,1,0.3,"180–200 g"],
+  ["Romã","fruta","fruta",80,13.5,1,0.3,""],
+  ["Pêra","fruta","fruta",80,13.5,0.3,0.2,""],
+  ["Tangerina/Mexerica","fruta","fruta",110,13.5,0.6,0.2,"100–120 g"],
+  ["Uva","fruta","fruta",105,13.5,0.7,0.2,"100–110 g"],
+  ["Frutas secas (damasco, uva passa, ameixa, tâmara, etc.)","fruta","fruta",25,13.5,1,0.1,""],
+
+  ["Suco de laranja natural (sem açúcar)","bebida","bebida",125,13.5,1,0,""],
+  ["Suco de uva integral","bebida","bebida",100,13.5,0.5,0,""],
+  ["Água de coco natural","bebida","bebida",250,13.5,0,0,""],
+  ["1 porção de fruta batida com água","bebida","bebida",200,13.5,0.5,0,"Porção ilustrativa"],
+  ["1 polpa de fruta batida com água","bebida","bebida",100,13.5,0.5,0,"Porção ilustrativa"],
+
+  ["Suco de limão (zero)","bebida","bebida",200,0,0,0,"0 kcal"],
+  ["Suco de maracujá (zero)","bebida","bebida",200,0,0,0,"0 kcal"],
+  ["Chás zero","bebida","bebida",200,0,0,0,"0 kcal"],
+  ["Refrigerante zero","bebida","bebida",350,0,0,0,"0 kcal"]
+];
+
+let base = BASE_INIT.map(r => ({nome:r[0],catDet:r[1],grupo:r[2],porcao:r[3],carb_p:r[4],prot_p:r[5],gord_p:r[6],notas:r[7]||""}));
+
+const foodSelect = document.getElementById('foodSelect');
+const gramsInput = document.getElementById('gramsInput');
+const roundingSel = document.getElementById('rounding');
+const resultsBody = document.querySelector('#resultsTable tbody');
+const chips = Array.from(document.querySelectorAll('.chip'));
+let activeGroup = "all";
+
+chips.forEach(ch => ch.addEventListener('click', () => {
+  chips.forEach(c => c.classList.remove('active'));
+  ch.classList.add('active');
+  activeGroup = ch.dataset.group;
+  compute();
+}));
+
+function buildSelect(){
+  foodSelect.innerHTML = "";
+  base.forEach((it, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx; opt.textContent = it.nome;
+    foodSelect.appendChild(opt);
+  });
+  foodSelect.value = "0";
+}
+
+function rebuildBaseTable(){
+  const baseBody = document.querySelector('#baseTable tbody');
+  baseBody.innerHTML = "";
+  base.forEach((it, idx) => {
+    const tr = document.createElement('tr');
+    function cell(el){const td=document.createElement('td');td.appendChild(el);return td;}
+    const iNome = document.createElement('input'); iNome.value = it.nome; iNome.style.width="260px"; iNome.onchange=()=>{it.nome=iNome.value;buildSelect();compute();};
+    const iCat = document.createElement('input'); iCat.value = it.catDet; iCat.style.width="120px"; iCat.onchange=()=>{it.catDet=iCat.value;};
+    const iGrupo = document.createElement('select'); ["carbo","proteina","fruta","gordura","bebida"].forEach(g=>{const o=document.createElement('option');o.value=g;o.textContent=g;iGrupo.appendChild(o);}); iGrupo.value=it.grupo; iGrupo.onchange=()=>{it.grupo=iGrupo.value; compute();};
+    const iPor = document.createElement('input'); iPor.type="number"; iPor.step="1"; iPor.min="1"; iPor.value=it.porcao; iPor.oninput=()=>{it.porcao=Math.min(Math.max(Number(iPor.value||it.porcao),1),5000);compute();};
+    const iC = document.createElement('input'); iC.type="number"; iC.step="0.1"; iC.min="0"; iC.value=it.carb_p; iC.oninput=()=>{it.carb_p=Math.min(Math.max(Number(iC.value||it.carb_p),0),1000);compute();};
+    const iP = document.createElement('input'); iP.type="number"; iP.step="0.1"; iP.min="0"; iP.value=it.prot_p; iP.oninput=()=>{it.prot_p=Math.min(Math.max(Number(iP.value||it.prot_p),0),1000);compute();};
+    const iG = document.createElement('input'); iG.type="number"; iG.step="0.1"; iG.min="0"; iG.value=it.gord_p; iG.oninput=()=>{it.gord_p=Math.min(Math.max(Number(iG.value||it.gord_p),0),1000);compute();};
+    const iN = document.createElement('input'); iN.value=it.notas; iN.style.width="240px"; iN.onchange=()=>{it.notas=iN.value;};
+    tr.appendChild(cell(iNome)); tr.appendChild(cell(iCat)); tr.appendChild(cell(iGrupo)); tr.appendChild(cell(iPor));
+    tr.appendChild(cell(iC)); tr.appendChild(cell(iP)); tr.appendChild(cell(iG)); tr.appendChild(cell(iN));
+    baseBody.appendChild(tr);
+  });
+}
+
+function compute(){
+  const idx = Number(foodSelect.value || 0);
+  const grams = Math.min(Math.max(Number(gramsInput.value||0), 0), 5000);
+  const rounding = Number(roundingSel.value || 1);
+  const A = base[idx] || base[0];
+
+  // kcal do alimento base para a quantidade informada
+  const c_g = (A.carb_p/A.porcao);
+  const p_g = (A.prot_p/A.porcao);
+  const f_g = (A.gord_p/A.porcao);
+  const kcal_g = kcal(c_g, p_g, f_g);
+  const alvoKcal = grams * kcal_g;
+
+  document.getElementById('info').innerHTML = `<span class="pill">Alvo: ~ ${fmt(alvoKcal,0)} kcal</span><span class="pill">${fmt(grams,0)} g de “${A.nome}”</span>`;
+
+  resultsBody.innerHTML = "";
+  base.forEach((it, i) => {
+    if (activeGroup !== "all" && it.grupo !== activeGroup) return;
+    const kc_g = kcal((it.carb_p/it.porcao), (it.prot_p/it.porcao), (it.gord_p/it.porcao));
+    const needRaw = kc_g>0 ? (alvoKcal / kc_g) : 0;
+    const need = rounding>1 ? Math.round(needRaw/rounding)*rounding : needRaw;
+
+    const tr = document.createElement('tr');
+    if(i===idx) tr.style.background="#fafafa";
+    function td(x){ const d=document.createElement('td'); d.textContent=x; return d; }
+    tr.appendChild(td(it.nome));
+    tr.appendChild(td(it.grupo));
+    tr.appendChild(td(i===idx ? fmt(grams,0)+" (mesmo)" : fmt(need,0)));
+    tr.addEventListener('click', () => { foodSelect.value = i; compute(); });
+    resultsBody.appendChild(tr);
+  });
+}
+
+document.getElementById('btnCalc').addEventListener('click', compute);
+document.getElementById('btnPrint').addEventListener('click', () => window.print());
+
+function init(){
+  buildSelect();
+  rebuildBaseTable();
+  compute();
+}
+init();
+</script>
+</body>
+</html>
