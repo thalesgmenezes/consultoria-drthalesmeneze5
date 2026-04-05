@@ -430,7 +430,7 @@ const BASE_INIT = [
   // Batata doce: TACO → 100g cozida = 18,4g C / 1,3g P / 0,1g G (77 kcal)
   ["Batata doce (cozida)","tubérculo","carbo",100,18.4,1.3,0.1,"TACO: 100g cozida = 77 kcal"],
   // Pão francês: TACO → 100g = 58,6g C / 9,4g P / 3,1g G (300 kcal) → porção 50g
-  ["Pão francês / forma","pão","carbo",50,58.6,8.0,3.2,"TACO: pão francês = ~300 kcal/100g"],
+  ["Pão francês / forma","pão","carbo",50,58.6,9.4,3.1,"TACO: pão francês = ~300 kcal/100g"],
   // Macarrão cozido: TACO → 100g = 25,8g C / 3,8g P / 0,5g G (122 kcal)
   ["Macarrão (cozido)","massa","carbo",100,25.8,3.8,0.5,"TACO: 100g cozido = 122 kcal"],
   // Feijão carioca cozido: TACO → 100g = 13,6g C / 4,8g P / 0,5g G (76 kcal)
@@ -457,7 +457,7 @@ const BASE_INIT = [
   ["PTS (Proteína texturizada de soja)","proteína","proteina",100,4.0,17.0,0.5,"Valores médios de rótulo; sem entrada TACO específica"],
 
   // ── GORDURAS ──────────────────────────────────────────────────────────────
-  // Abacate: TACO → 100g = 6,0g C / 1,2g P / 14,5g G (96 kcal) → porção 88g
+  // Abacate: TACO #3 → 100g = 6,0g C / 1,2g P / 8,4g G (96 kcal)
   ["Abacate","gordura","gordura",100,6.0,1.2,8.4,"TACO #3: abacate cru = 96 kcal/100g"],
   // Azeitona verde conserva: TACO → 100g = 0,9g C / 0,9g P / 14,2g G (137 kcal) → porção 50g
   ["Azeitona","gordura","gordura",50,0.9,0.9,14.2,"TACO: azeitona verde conserva"],
@@ -466,21 +466,21 @@ const BASE_INIT = [
   // Bacon: TACO → 100g = 0g C / 14,2g P / 37,6g G (396 kcal) → porção 13g
   ["Calabresa/Bacon","gordura","gordura",13,0.0,14.2,37.6,"TACO: bacon = 396 kcal/100g"],
   // Creme de leite: TACO → 100g = 3,2g C / 2,1g P / 23,0g G (228 kcal) → porção 13g
-  ["Creme de leite","gordura","gordura",13,4.6,1.5,22.5,"TACO: creme de leite = 228 kcal/100g"],
+  ["Creme de leite","gordura","gordura",13,3.2,2.1,23.0,"TACO: creme de leite = 228 kcal/100g"],
   // Chocolate ≥60%: sem entrada TACO específica; valores típicos de rótulo
   ["Chocolate ≥60% cacau","gordura","gordura",13,49.7,4.9,29.9,"Valores típicos rótulo 70% cacau"],
   // Coco desidratado: TACO → 100g = 7,3g C / 5,0g P / 60,0g G (593 kcal) → porção 13g
-  ["Coco seco/desidratado","gordura","gordura",13,10.4,3.7,42.0,"TACO: coco ralado desidratado"],
+  ["Coco seco/desidratado","gordura","gordura",13,7.3,5.0,60.0,"TACO: coco ralado desidratado = 593 kcal/100g"],
   // Óleo de coco: 100g = 100g G → porção 7g
   ["Óleo de coco","gordura","gordura",7,0.0,0.0,100.0,"100% lipídeo = 63 kcal/7g"],
   // Manteiga: TACO → 100g = 0g C / 0,7g P / 83,2g G (748 kcal) → porção 7g
-  ["Manteiga","gordura","gordura",7,0.4,0.4,86.0,"TACO: manteiga com sal = 748 kcal/100g"],
+  ["Manteiga","gordura","gordura",7,0.0,0.7,83.2,"TACO: manteiga com sal = 748 kcal/100g"],
   // Amendoim torrado: TACO → 100g = 8,0g C / 26,0g P / 49,9g G (581 kcal) → porção 13g
-  ["Oleaginosas e sementes (amendoim, nozes, castanhas, chia, linhaça, etc.)","gordura","gordura",13,18.7,22.5,54.0,"TACO: amendoim torrado como referência"],
+  ["Oleaginosas e sementes (amendoim, nozes, castanhas, chia, linhaça, etc.)","gordura","gordura",13,8.0,26.0,49.9,"TACO: amendoim torrado como referência = 581 kcal/100g"],
   // Queijo muçarela: TACO → 100g = 2,1g C / 22,6g P / 17,1g G (253 kcal) → porção 13g
-  ["Queijos duros (muçarela, parmesão, gorgonzola, coalho, provolone)","gordura","gordura",13,3.0,22.6,25.2,"TACO: muçarela como referência"],
+  ["Queijos duros (muçarela, parmesão, gorgonzola, coalho, provolone)","gordura","gordura",13,2.1,22.6,17.1,"TACO: muçarela como referência = 253 kcal/100g"],
   // Queijo Minas frescal: TACO → 100g = 1,0g C / 17,4g P / 20,2g G (264 kcal) → porção 28g
-  ["Queijos frescos (Minas, cottage, ricota)","gordura","gordura",28,3.2,17.4,20.2,"TACO: Minas frescal como referência"],
+  ["Queijos frescos (Minas, cottage, ricota)","gordura","gordura",28,1.0,17.4,20.2,"TACO: Minas frescal como referência = 264 kcal/100g"],
   // Requeijão: TACO → 100g = 2,3g C / 7,5g P / 21,4g G (232 kcal) → porção 15g
   ["Requeijão","gordura","gordura",15,2.3,7.5,21.4,"TACO: requeijão cremoso"],
   // Requeijão light: sem entrada TACO; valores típicos de rótulo
@@ -537,7 +537,7 @@ const BASE_INIT = [
   // Pêra Park: TACO #252 → 100g = 14,5g C / 0,4g P / 0,1g G (61 kcal)
   ["Pêra","fruta","fruta",100,14.5,0.4,0.1,"TACO #252: pêra Park = 61 kcal/100g"],
   // Tangerina Murcote: TACO → 100g = 13,3g C / 0,9g P / 0,1g G (58 kcal)
-  ["Tangerina/Mexerica","fruta","fruta",110,14.6,1.0,0.1,"TACO: mexerica Murcote = 58 kcal/100g"],
+  ["Tangerina/Mexerica","fruta","fruta",110,13.3,0.9,0.1,"TACO: mexerica Murcote = 58 kcal/100g"],
   // Uva Itália: sem entrada TACO específica; ref. USDA → 100g = 17,2g C / 0,7g P / 0,2g G (69 kcal)
   ["Uva","fruta","fruta",105,17.0,0.8,0.1,"Ref. USDA (sem entrada TACO uva Itália): 69 kcal/100g"],
   // Frutas secas — uva passa como referência: USDA → 100g = 79,2g C / 3,1g P / 0,5g G (299 kcal)
@@ -549,7 +549,7 @@ const BASE_INIT = [
   // Suco de uva: sem entrada TACO direta; estimativa baseada em uva
   ["Suco de uva integral","bebida","bebida",100,16.0,0.5,0.1,"Estimativa; sem entrada TACO específica"],
   // Água de coco: TACO → 100g = 3,1g C / 0,1g P / 0,1g G (14 kcal)
-  ["Água de coco natural","bebida","bebida",250,5.3,0.0,0.0,"TACO: 250mL = ~35 kcal"],
+  ["Água de coco natural","bebida","bebida",250,3.1,0.1,0.1,"TACO: 250mL = ~35 kcal"],
   ["1 porção de fruta batida com água","bebida","bebida",200,6.0,0.2,0.1,"Estimativa; depende da fruta"],
   ["1 polpa de fruta batida com água","bebida","bebida",100,10.0,0.4,0.1,"Estimativa; depende da polpa"],
 
