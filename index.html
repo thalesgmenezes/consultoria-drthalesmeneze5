@@ -154,14 +154,6 @@ tr:hover td { background: var(--surface2); }
         <label for="gramsInput">Quantidade (g / ml)</label>
         <input type="number" id="gramsInput" value="100" min="1" max="2000" step="1" inputmode="numeric">
       </div>
-      <div class="field">
-        <label for="rounding">Arredondar resultado</label>
-        <select id="rounding">
-          <option value="5">Para 5 g</option>
-          <option value="10">Para 10 g</option>
-          <option value="1">Sem arredondamento</option>
-        </select>
-      </div>
     </div>
     <div class="toggle-group" id="modeGroup">
       <span class="base-note">EQUIVALER POR:</span>
@@ -738,14 +730,13 @@ function cell(txt, cls=''){
 function compute(){
   const sel = document.getElementById('foodSelect');
   const gramsInput = document.getElementById('gramsInput');
-  const rounding = document.getElementById('rounding');
   const baseBody = document.getElementById('baseBody');
   const infoBar = document.getElementById('infoBar');
   if(!sel || !gramsInput || !baseBody) return;
 
   const idx = Number(sel.value || 0);
   const g0  = Number(gramsInput.value || 100);
-  const rd  = Number(rounding ? rounding.value : 5);
+  const rd  = 5;
   const it0 = base[idx];
   if(!it0) return;
 
